@@ -18,9 +18,9 @@ def get_user(token, user_id):
       return {'profile': user_json_data, 'user': json_data}
     return json_data
 
-def create_user(email, password):
+def create_user(email, password, app_url):
     session = supabase.auth.sign_up(
-        {"email": email, "password": password})
+        {"email": email, "password": password, "options":{"email_redirect_to": app_url}})
     response_data = session.json()
     json_data = json.loads(response_data)
     # supabase.postgrest.auth(session.session.access_token)

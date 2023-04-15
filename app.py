@@ -30,9 +30,10 @@ def signUp():
     try:
         email = data.get('email')
         password = data.get('password')
+        app_url = data.get('app_url')
         if(email and password):
             return jsonify({
-                'session': create_user(email, password),
+                'session': create_user(email, password, app_url),
             }, 201)
         return Response('''{"message": "No username or password"}''', status=400, mimetype='application/json')
     except Exception as e:
