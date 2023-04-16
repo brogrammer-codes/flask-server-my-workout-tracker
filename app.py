@@ -72,20 +72,17 @@ def addOrUpdateTask():
     data = request.get_json()
     token = get_token(request)
     parent_id = data.get('parent_id')
-    user_id = data.get('user_id')
     task_id = data.get('task_id')
     name = data.get('name')
     complete = data.get('complete')
     try:
         if(request.method == 'POST'):
             return jsonify({
-                'task': add_task(token, parent_id, user_id, name),
+                'task': add_task(token, parent_id, name),
             }, 201)
         elif(request.method == 'PATCH'):
-            for key in data:
-                print(key)
             return jsonify({
-                'task': update_task(token, user_id, task_id, complete),
+                'task': update_task(token, task_id, complete),
             }, 201)
     except Exception as e:
         print(e)
@@ -94,10 +91,9 @@ def addOrUpdateTask():
 @app.route('/tasks')
 def getTasks():
     token = get_token(request)
-    user_id = request.args.get('user_id')
     try:
         return jsonify({
-            'task_tree': get_tasks(token, user_id),
+            'task_tree': get_tasks(token),
         })
     except Exception as e:
         print(e)
