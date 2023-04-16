@@ -7,16 +7,22 @@ url: str = os.environ.get("SUPABASE_URL")
 key: str = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(url, key)
 
-def get_user(token, user_id):
+def get_user(token, user_id=0):
+    supabase.postgrest.auth(token)
     user = supabase.auth.get_user(token)
     response_data = user.json()
     json_data = json.loads(response_data)['user']
     if(user_id):
-      response = supabase.table('profiles').select('username, full_name, website', count='exact').eq('id', user_id).execute()
+      response = supabase.table('profiles').select('id, username, full_name, website', count='exact').eq('id', user_id).execute()
       user_profile = response.json()
       user_json_data = json.loads(user_profile)['data']
       return {'profile': user_json_data, 'user': json_data}
-    return json_data
+    else:
+        token_user_id = json_data.get('id')
+        response = supabase.table('profiles').select('id, username, full_name, website', count='exact').eq('id', token_user_id).execute()
+        user_profile = response.json()
+        user_json_data = json.loads(user_profile)['data']
+        return {'profile': user_json_data, 'user': json_data}
 
 def create_user(email, password, app_url):
     session = supabase.auth.sign_up(
@@ -60,3 +66,12 @@ def update_task(token, user_id, task_id, complete):
     response_data = response.json()
     json_data = json.loads(response_data)['data']
     return json_data
+
+def update_profile(token, profile):
+    user = get_user(token)
+    user_id = user.get('user').get('id')
+    response = supabase.table('profiles').update(profile).eq('id', user_id).execute()
+    response_data = response.json()
+    json_data = json.loads(response_data)['data']
+    return json_data
+    
