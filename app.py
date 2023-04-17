@@ -35,7 +35,7 @@ def patch_user_profile():
             token = get_token(request)
             data = request.get_json()
             return jsonify({
-                'user': task_manager.update_profile(token, data),
+                'profile': task_manager.update_profile(token, data),
             })
         elif (request.method == 'GET'):
             user_id = request.args.get('user_id')
