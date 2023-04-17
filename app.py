@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
-from supabase_controller import create_user, login_user, get_user, add_task, get_tasks, update_task, update_profile
+from supabase_controller import create_user, login_user, get_user, add_task, get_tasks, update_task, update_profile, get_profile
 from utils  import get_token
 app = Flask(__name__)
 CORS(app)
@@ -24,14 +24,21 @@ def user():
         print(e)
         return Response('''{"message": "Bad Request"}''', status=400, mimetype='application/json')
 
-@app.route('/user/profile', methods=['PATCH'])
+@app.route('/user/profile', methods=['PATCH', 'GET'])
 def patch_user_profile():
-    token = get_token(request)
-    data = request.get_json()
     try:
-        return jsonify({
-            'user': update_profile(token, data),
-        })
+        if(request.method == 'PATCH'):
+            token = get_token(request)
+            data = request.get_json()
+            return jsonify({
+                'user': update_profile(token, data),
+            })
+        elif (request.method == 'GET'):
+            print(request)
+            user_id = request.args.get('user_id')
+            return jsonify({
+                'profile': get_profile(user_id),
+            })
     except Exception as e:
         print(e)
         return Response('''{"message": "Bad Request"}''', status=400, mimetype='application/json')

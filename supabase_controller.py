@@ -29,7 +29,6 @@ def create_user(email, password, app_url):
         {"email": email, "password": password, "options":{"email_redirect_to": app_url}})
     response_data = session.json()
     json_data = json.loads(response_data)
-    # supabase.postgrest.auth(session.session.access_token)
     return json_data
 
 def login_user(email, password):
@@ -73,6 +72,12 @@ def update_profile(token, profile):
     user = get_user(token)
     user_id = user.get('user').get('id')
     response = supabase.table('profiles').update(profile).eq('id', user_id).execute()
+    response_data = response.json()
+    json_data = json.loads(response_data)['data']
+    return json_data
+
+def get_profile(profile_id):
+    response = supabase.table('profiles').get('username, full_name, website').eq('id', profile_id).execute()
     response_data = response.json()
     json_data = json.loads(response_data)['data']
     return json_data
