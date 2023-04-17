@@ -1,10 +1,14 @@
 from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
-from supabase_controller import create_user, login_user, get_user, add_task, get_tasks, update_task, update_profile, get_profile
+from supabase_controller import TaskManager
 from utils  import get_token
+import os
+
 app = Flask(__name__)
 CORS(app)
-
+url: str = os.environ.get("SUPABASE_URL")
+key: str = os.environ.get("SUPABASE_KEY")
+task_manager = TaskManager(url, key)
 @app.route('/')
 def hello_world():
     return jsonify({
@@ -18,7 +22,7 @@ def user():
     user_id = request.args.get('user_id')
     try:
         return jsonify({
-            'user': get_user(token, user_id),
+            'user': task_manager.get_user(token, user_id),
         })
     except Exception as e:
         print(e)
@@ -31,13 +35,12 @@ def patch_user_profile():
             token = get_token(request)
             data = request.get_json()
             return jsonify({
-                'user': update_profile(token, data),
+                'user': task_manager.update_profile(token, data),
             })
         elif (request.method == 'GET'):
-            print(request)
             user_id = request.args.get('user_id')
             return jsonify({
-                'profile': get_profile(user_id),
+                'profile': task_manager.get_profile(user_id),
             })
     except Exception as e:
         print(e)
@@ -52,7 +55,7 @@ def signUp():
         app_url = data.get('app_url')
         if(email and password):
             return jsonify({
-                'session': create_user(email, password, app_url),
+                'session': task_manager.create_user(email, password, app_url),
             }, 201)
         return Response('''{"message": "No username or password"}''', status=400, mimetype='application/json')
     except Exception as e:
@@ -67,7 +70,7 @@ def login():
         password = data.get('password')
         if(email and password):
             return jsonify({
-                'session': login_user(email, password),
+                'session': task_manager.login_user(email, password),
             }, 201)
         return Response('''{"message": "No username or password"}''', status=400, mimetype='application/json')
     except Exception as e:
@@ -78,18 +81,16 @@ def login():
 def addOrUpdateTask():
     data = request.get_json()
     token = get_token(request)
-    parent_id = data.get('parent_id')
     task_id = data.get('task_id')
-    name = data.get('name')
     complete = data.get('complete')
     try:
         if(request.method == 'POST'):
             return jsonify({
-                'task': add_task(token, parent_id, name),
+                'task': task_manager.create_task(token, data),
             }, 201)
         elif(request.method == 'PATCH'):
             return jsonify({
-                'task': update_task(token, task_id, complete),
+                'task': task_manager.update_task(token, task_id, complete),
             }, 201)
     except Exception as e:
         print(e)
@@ -98,9 +99,11 @@ def addOrUpdateTask():
 @app.route('/tasks')
 def getTasks():
     token = get_token(request)
+    task_id = request.args.get('task_id')
+
     try:
         return jsonify({
-            'task_tree': get_tasks(token),
+            'task_tree': task_manager.get_tasks(token, task_id),
         })
     except Exception as e:
         print(e)
