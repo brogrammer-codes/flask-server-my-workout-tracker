@@ -29,7 +29,6 @@ def create_user(email, password, app_url):
         {"email": email, "password": password, "options":{"email_redirect_to": app_url}})
     response_data = session.json()
     json_data = json.loads(response_data)
-    # supabase.postgrest.auth(session.session.access_token)
     return json_data
 
 def login_user(email, password):
@@ -40,9 +39,9 @@ def login_user(email, password):
     supabase.postgrest.auth(session.session.access_token)
     return json_data
 
-def add_task(token, parent_id, user_id, name):
-    # print(token, parent_id, user_id, name)
-    supabase.postgrest.auth(token)
+def add_task(token, parent_id, name):
+    user = get_user(token)
+    user_id = user.get('user').get('id')
     data = supabase\
         .table('tasks')\
         .insert({"parent_id": parent_id, "name": name, "user_id": user_id})\
@@ -52,15 +51,17 @@ def add_task(token, parent_id, user_id, name):
     json_data = json.loads(response_data)['data']
     return json_data
 
-def get_tasks(token, user_id):
-    supabase.postgrest.auth(token)
+def get_tasks(token):
+    user = get_user(token)
+    user_id = user.get('user').get('id')
     response = supabase.table('tasks').select('id, name, parent_id, complete').eq('user_id', user_id).execute()
     task_tree = response.json()
     task_tree_json_data = json.loads(task_tree)['data']
     return task_tree_json_data
 
-def update_task(token, user_id, task_id, complete):
-    supabase.postgrest.auth(token)
+def update_task(token, task_id, complete):
+    user = get_user(token)
+    user_id = user.get('user').get('id')
     response = supabase.table("tasks")\
         .update({"complete": complete}).eq('user_id', user_id).eq('id', task_id).execute()
     response_data = response.json()
@@ -71,6 +72,12 @@ def update_profile(token, profile):
     user = get_user(token)
     user_id = user.get('user').get('id')
     response = supabase.table('profiles').update(profile).eq('id', user_id).execute()
+    response_data = response.json()
+    json_data = json.loads(response_data)['data']
+    return json_data
+
+def get_profile(profile_id):
+    response = supabase.table('profiles').get('username, full_name, website').eq('id', profile_id).execute()
     response_data = response.json()
     json_data = json.loads(response_data)['data']
     return json_data

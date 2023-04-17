@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
-from supabase_controller import create_user, login_user, get_user, add_task, get_tasks, update_task, update_profile
+from supabase_controller import create_user, login_user, get_user, add_task, get_tasks, update_task, update_profile, get_profile
 from utils  import get_token
 app = Flask(__name__)
 CORS(app)
@@ -24,14 +24,21 @@ def user():
         print(e)
         return Response('''{"message": "Bad Request"}''', status=400, mimetype='application/json')
 
-@app.route('/user/profile', methods=['PATCH'])
+@app.route('/user/profile', methods=['PATCH', 'GET'])
 def patch_user_profile():
-    token = get_token(request)
-    data = request.get_json()
     try:
-        return jsonify({
-            'user': update_profile(token, data),
-        })
+        if(request.method == 'PATCH'):
+            token = get_token(request)
+            data = request.get_json()
+            return jsonify({
+                'user': update_profile(token, data),
+            })
+        elif (request.method == 'GET'):
+            print(request)
+            user_id = request.args.get('user_id')
+            return jsonify({
+                'profile': get_profile(user_id),
+            })
     except Exception as e:
         print(e)
         return Response('''{"message": "Bad Request"}''', status=400, mimetype='application/json')
@@ -72,20 +79,17 @@ def addOrUpdateTask():
     data = request.get_json()
     token = get_token(request)
     parent_id = data.get('parent_id')
-    user_id = data.get('user_id')
     task_id = data.get('task_id')
     name = data.get('name')
     complete = data.get('complete')
     try:
         if(request.method == 'POST'):
             return jsonify({
-                'task': add_task(token, parent_id, user_id, name),
+                'task': add_task(token, parent_id, name),
             }, 201)
         elif(request.method == 'PATCH'):
-            for key in data:
-                print(key)
             return jsonify({
-                'task': update_task(token, user_id, task_id, complete),
+                'task': update_task(token, task_id, complete),
             }, 201)
     except Exception as e:
         print(e)
@@ -94,10 +98,9 @@ def addOrUpdateTask():
 @app.route('/tasks')
 def getTasks():
     token = get_token(request)
-    user_id = request.args.get('user_id')
     try:
         return jsonify({
-            'task_tree': get_tasks(token, user_id),
+            'task_tree': get_tasks(token),
         })
     except Exception as e:
         print(e)
