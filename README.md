@@ -9,4 +9,6 @@ python -m pip install flask python-dotenv flask_cors supabase
 
 
 python3 -m pip freeze > requirements.txt
+
+git push heroku main
 ```
