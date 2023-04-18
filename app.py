@@ -96,6 +96,19 @@ def addOrUpdateTask():
         print(e)
         return Response('''{"message": "Bad Request"}''', status=400, mimetype='application/json')
 
+@app.route('/task/clone', methods=['POST'])
+def cloneTask():
+    data = request.get_json()
+    token = get_token(request)
+    task_id = data.get('task_id')
+    try:
+        return jsonify({
+            'task': task_manager.duplicate_task(token, task_id),
+        }, 201)
+    except Exception as e:
+        print(e)
+        return Response('''{"message": "Bad Request"}''', status=400, mimetype='application/json')
+
 @app.route('/tasks')
 def getTasks():
     token = get_token(request)

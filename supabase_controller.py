@@ -1,7 +1,7 @@
 
 from supabase import create_client, Client
 import json
-from utils import get_subtree_helper
+from utils import get_subtree_helper, reduce_joint_array
 from typing import List
 
 class TaskManager:
@@ -18,9 +18,14 @@ class TaskManager:
     def get_tasks(self, token:str, task_id=None) -> List[dict]:
         user = self.get_user(token)
         user_id = user.get('user').get('id')
-        response = self.supabase.table('tasks').select('id, name, parent_id, complete').eq('user_id', user_id).execute()
-        task_tree = response.json()
-        task_tree_json_data = json.loads(task_tree)['data']
+        response = self.supabase\
+            .table('tasks')\
+            .select('id, parent_id, task_details(name, type, complete, description)')\
+            .eq('user_id', user_id)\
+            .execute().json()
+        task_tree_json_data = json.loads(response)['data']
+        reduce_joint_array(task_tree_json_data)
+        # think of a better way to do this
         if(task_id is not None):
             subtree = []
             for task in task_tree_json_data:
@@ -32,19 +37,21 @@ class TaskManager:
         return task_tree_json_data
 
     def create_task(self, token: str, task: dict) -> dict:
-        parent_id = task.get('parent_id')
-        name = task.get('name')
-        # task_id = task.get('task_id')
-        # complete = data.get('complete')
         user = self.get_user(token)
         user_id = user.get('user').get('id')
         data = self.supabase\
             .table('tasks')\
-            .insert({"parent_id": parent_id, "name": name, "user_id": user_id})\
-            .execute()
-        response_data = data.json()
-        json_data = json.loads(response_data)['data']
-        return json_data
+            .insert({"parent_id": task.get('parent_id'), "user_id": user_id})\
+            .execute()\
+            .json()
+        json_data = json.loads(data)['data'][0]
+        data = self.supabase\
+            .table('task_details')\
+            .insert({"id": json_data.get('id'), "name": task.get('name'), "complete": task.get('complete'), "type": task.get('type'), "description": task.get('description'), "user_id": user_id})\
+            .execute()\
+            .json()
+        task_details = json.loads(data)['data'][0]
+        return {"task": json_data, "details": task_details}
     
     def update_task(self,token: str, task_id: str, complete: str) -> dict:
         user = self.get_user(token)
@@ -58,6 +65,32 @@ class TaskManager:
     def delete_task(self, token: str, task_id: int) -> dict:
         # implementation of delete_task function
         pass
+    def duplicate_task(self,token, task_id, parent_id=None):
+        user = self.get_user(token)
+        user_id = user.get('user').get('id')
+        # Get the task to duplicate
+        task_to_duplicate = self.supabase.table('tasks').select('id, name, parent_id, complete').eq('user_id', user_id).eq('id', task_id).execute().json()
+        task_to_duplicate = json.loads(task_to_duplicate)['data'][0]
+
+        # Create a new task with the same data as the task to duplicate, but with a new name
+        new_task = {
+            "name": task_to_duplicate['name'] + ' (copy)',
+            "parent_id": task_to_duplicate['parent_id'] if parent_id is None else parent_id,
+            'complete': task_to_duplicate['complete'],
+
+        }
+        new_task_name = task_to_duplicate['name'] + ' (copy)'
+        new_task_parent_id = task_to_duplicate['parent_id'] if parent_id is None else parent_id
+        new_task = self.supabase.table('tasks')\
+            .insert({'name': new_task_name, 'parent_id': new_task_parent_id, 'complete': task_to_duplicate['complete'], "user_id": user_id})\
+            .execute().json()
+        new_task = json.loads(new_task)['data'][0]
+        # Duplicate the sub-tasks of the task to duplicate
+        sub_tasks = self.supabase.table('tasks').select('id').eq('parent_id', task_id).execute().json()
+        sub_tasks = json.loads(sub_tasks)['data']
+        for sub_task in sub_tasks:
+            self.duplicate_task(token, sub_task['id'], new_task['id'])
+        return new_task
 
     def create_user(self, email: str, password: str, app_url: str) -> dict:
         session = self.supabase.auth.sign_up({"email": email, "password": password, "options":{"email_redirect_to": app_url}})

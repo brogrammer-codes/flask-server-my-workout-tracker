@@ -12,3 +12,10 @@ def get_subtree_helper(task_tree, task_id, subtree):
         if task['parent_id'] == task_id:
             subtree.append(task)
             get_subtree_helper(task_tree, task['id'], subtree)
+
+def reduce_joint_array(array, key='task_details'):
+    for item in array:
+        item_details = item.get(key)
+        if(item_details):
+            item.update(item_details)
+            item.pop(key)
