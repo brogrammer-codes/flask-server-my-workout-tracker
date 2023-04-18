@@ -20,7 +20,7 @@ class TaskManager:
         user_id = user.get('user').get('id')
         response = self.supabase\
             .table('tasks')\
-            .select('id, parent_id, task_details(name, type, complete, description)')\
+            .select('id, parent_id, name, task_details(type, complete, description)')\
             .eq('user_id', user_id)\
             .execute().json()
         task_tree_json_data = json.loads(response)['data']
@@ -41,13 +41,13 @@ class TaskManager:
         user_id = user.get('user').get('id')
         data = self.supabase\
             .table('tasks')\
-            .insert({"parent_id": task.get('parent_id'), "user_id": user_id})\
+            .insert({"parent_id": task.get('parent_id'), "user_id": user_id, "name": task.get('name')})\
             .execute()\
             .json()
         json_data = json.loads(data)['data'][0]
         data = self.supabase\
             .table('task_details')\
-            .insert({"id": json_data.get('id'), "name": task.get('name'), "complete": task.get('complete'), "type": task.get('type'), "description": task.get('description'), "user_id": user_id})\
+            .insert({"id": json_data.get('id'), "complete": task.get('complete'), "type": task.get('type'), "description": task.get('description'), "user_id": user_id})\
             .execute()\
             .json()
         task_details = json.loads(data)['data'][0]
