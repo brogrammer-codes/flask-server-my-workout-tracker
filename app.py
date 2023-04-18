@@ -77,7 +77,7 @@ def login():
         print(e)
         return Response('''{"message": "Bad Request"}''', status=400, mimetype='application/json')
 
-@app.route('/task', methods=['POST', 'PATCH'])
+@app.route('/task', methods=['POST', 'PATCH', 'DELETE'])
 def addOrUpdateTask():
     data = request.get_json()
     token = get_token(request)
@@ -91,6 +91,10 @@ def addOrUpdateTask():
         elif(request.method == 'PATCH'):
             return jsonify({
                 'task': task_manager.update_task(token, task_id, complete),
+            }, 201)
+        elif(request.method == 'DELETE'):
+            return jsonify({
+                'task': task_manager.delete_task(token, task_id),
             }, 201)
     except Exception as e:
         print(e)

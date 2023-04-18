@@ -15,8 +15,11 @@ def get_subtree_helper(task_tree, task_id, subtree):
 
 def reduce_joint_array(array, key='task_details'):
     for item in array:
-        item_details = item.get(key)
-        if(item_details):
-            item.update(item_details)
-            item.pop(key)
+        flatten_task_details(item, key)
+
+def flatten_task_details(task_to_update, key='task_details'):
+    item_details = task_to_update.get(key)
+    if(item_details):
+        task_to_update.update(item_details)
+        task_to_update.pop(key)
 
