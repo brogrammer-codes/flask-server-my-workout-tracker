@@ -74,9 +74,9 @@ class TaskManager:
 
         # Create a new task with the same data as the task to duplicate, but with a new name
         new_task = {
-            "name": task_to_duplicate['name'] + ' (copy)',
+            "name": task_to_duplicate['name'] + ' (copy)' if parent_id is None else task_to_duplicate['name'],
             "parent_id": task_to_duplicate['parent_id'] if parent_id is None else parent_id,
-            'complete': task_to_duplicate['complete'],
+            "complete": task_to_duplicate['complete'],
 
         }
         new_task_name = task_to_duplicate['name'] + ' (copy)'

@@ -19,3 +19,4 @@ def reduce_joint_array(array, key='task_details'):
         if(item_details):
             item.update(item_details)
             item.pop(key)
+
