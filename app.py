@@ -1,8 +1,8 @@
 from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
-from supabase_controller import TaskManager
 from utils  import get_token
 import os
+from model.TaskManager import TaskManager
 
 app = Flask(__name__)
 CORS(app)
@@ -19,10 +19,9 @@ def hello_world():
 @app.route('/user')
 def user():
     token = get_token(request)
-    user_id = request.args.get('user_id')
     try:
         return jsonify({
-            'user': task_manager.get_user(token, user_id),
+            'user': task_manager.get_user(token),
         })
     except Exception as e:
         print(e)
@@ -53,7 +52,7 @@ def signUp():
         email = data.get('email')
         password = data.get('password')
         app_url = data.get('app_url')
-        if(email and password):
+        if(email):
             return jsonify({
                 'session': task_manager.create_user(email, password, app_url),
             }, 201)
@@ -74,15 +73,16 @@ def login():
             }, 201)
         return Response('''{"message": "No username or password"}''', status=400, mimetype='application/json')
     except Exception as e:
-        print(e)
-        return Response('''{"message": "Bad Request"}''', status=400, mimetype='application/json')
+        if str(e) == 'Invalid login credentials':
+            return Response('''{"message": "Invalid username or password"}''', status=400, mimetype='application/json')
+        else:
+            return Response('''{"message": "Bad Request"}''', status=400, mimetype='application/json')
 
 @app.route('/task', methods=['POST', 'PATCH', 'DELETE'])
 def addOrUpdateTask():
     data = request.get_json()
     token = get_token(request)
     task_id = data.get('task_id')
-    complete = data.get('complete')
     try:
         if(request.method == 'POST'):
             return jsonify({
@@ -90,7 +90,7 @@ def addOrUpdateTask():
             }, 201)
         elif(request.method == 'PATCH'):
             return jsonify({
-                'task': task_manager.update_task(token, task_id, complete),
+                'task': task_manager.update_task(token, data),
             }, 201)
         elif(request.method == 'DELETE'):
             return jsonify({
