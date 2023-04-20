@@ -99,7 +99,18 @@ def addOrUpdateTask():
     except Exception as e:
         print(e)
         return Response('''{"message": "Bad Request"}''', status=400, mimetype='application/json')
-
+@app.route('/task/type')
+def getActivity():
+    token = get_token(request)
+    keyword = request.args.get('keyword')
+    type = request.args.get('type')
+    try:
+        return jsonify({
+            'task': task_manager.search_task_by_type(token, type, keyword),
+        }, 201)
+    except Exception as e:
+        print(e)
+        return Response('''{"message": "Bad Request"}''', status=400, mimetype='application/json')
 @app.route('/task/clone', methods=['POST'])
 def cloneTask():
     data = request.get_json()

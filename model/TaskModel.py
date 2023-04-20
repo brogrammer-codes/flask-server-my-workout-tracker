@@ -30,6 +30,22 @@ class TaskModel:
             return subtree
         return task_tree_json_data
 
+    def search_task_by_type(self, token: str, type: str, keyword: str):
+        user = self.user_model.get_user(token)
+        user_id = user.get('user').get('id')
+        response = self.supabase\
+            .table('tasks')\
+            .select('id, parent_id, name, task_details(*)')\
+            .eq('user_id', user_id)\
+            .eq('task_details.type', type)\
+            .execute().json()
+        task_tree_json_data = json.loads(response)['data']
+        task_tree_json_data = [data for data in task_tree_json_data if data['task_details'] is not None]
+        if keyword is not None:
+            task_tree_json_data = [data for data in task_tree_json_data if keyword.lower() in  data['name'].lower()]
+        reduce_joint_array(task_tree_json_data)
+        return task_tree_json_data
+    
     def create_task(self, token: str, task: dict) -> dict:
         user = self.user_model.get_user(token)
         user_id = user.get('user').get('id')

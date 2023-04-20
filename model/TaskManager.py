@@ -28,6 +28,9 @@ class TaskManager:
     
     def get_tasks(self, token:str, task_id=None) -> List[dict]:
         return self.task_model.get_tasks(token, task_id)
+    
+    def search_task_by_type(self, token: str, type: str, keyword: str) -> List[dict]:
+        return self.task_model.search_task_by_type(token, type, keyword)
 
     def create_task(self, token: str, task: dict) -> dict:
         return self.task_model.create_task(token, task)
