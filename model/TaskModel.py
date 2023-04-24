@@ -14,7 +14,7 @@ class TaskModel:
         user_id = user.get('user').get('id')
         response = self.supabase\
             .table('tasks')\
-            .select('id, parent_id, name, task_details(type, complete, description)')\
+            .select('id, parent_id, name, task_details(*)')\
             .eq('user_id', user_id)\
             .execute().json()
         task_tree_json_data = json.loads(response)['data']
@@ -57,7 +57,7 @@ class TaskModel:
         json_data = json.loads(data)['data'][0]
         data = self.supabase\
             .table('task_details')\
-            .insert({"id": json_data.get('id'), "complete": task.get('complete'), "type": task.get('type'), "description": task.get('description'), "user_id": user_id})\
+            .insert({"id": json_data.get('id'), "complete": task.get('complete'), "type": task.get('type'), "description": task.get('description'), "user_id": user_id, "tag_1": task.get('tag_1'), "tag_2": task.get('tag_2'), "tag_3": task.get('tag_3'), "tag_4": task.get('tag_4'), "tag_5": task.get('tag_5'), "tag_6": task.get('tag_6'), "video_url":  task.get('video_url')})\
             .execute()\
             .json()
         task_details = json.loads(data)['data'][0]
@@ -74,7 +74,7 @@ class TaskModel:
             .execute().json()
         json_data = json.loads(data)['data'][0]
         data = self.supabase.table("task_details")\
-            .update({"complete": task.get('complete'), "type": task.get('type'), "description": task.get('description'), "user_id": user_id}).eq('user_id', user_id).eq('id', task_id)\
+            .update({"complete": task.get('complete'), "type": task.get('type'), "description": task.get('description'), "user_id": user_id, "tag_1": task.get('tag_1'), "tag_2": task.get('tag_2'), "tag_3": task.get('tag_3'), "tag_4": task.get('tag_4'), "tag_5": task.get('tag_5'), "tag_6": task.get('tag_6')}).eq('user_id', user_id).eq('id', task_id)\
             .execute().json()
         task_details = json.loads(data)['data'][0]
         task_details['parent_id'] = json_data.get('parent_id')
@@ -99,7 +99,7 @@ class TaskModel:
         user = self.user_model.get_user(token)
         user_id = user.get('user').get('id')
         # Get the task to duplicate
-        task_to_duplicate = self.supabase.table('tasks').select('id, name, parent_id, task_details(type, complete, description)').eq('user_id', user_id).eq('id', task_id).execute().json()
+        task_to_duplicate = self.supabase.table('tasks').select('id, name, parent_id, task_details(*)').eq('user_id', user_id).eq('id', task_id).execute().json()
         task_to_duplicate = json.loads(task_to_duplicate)['data'][0]
         flatten_task_details(task_to_duplicate)
         if(parent_id):
@@ -113,4 +113,32 @@ class TaskModel:
         for sub_task in sub_tasks:
             self.duplicate_task(token, sub_task['id'], new_task['id'])
         return new_task
-
+    def get_task(self, token, task_id):
+        user = self.user_model.get_user(token)
+        user_id = user.get('user').get('id')
+        current_task = self.supabase.table('tasks')\
+            .select('id, name, parent_id, task_details(*)')\
+                .eq('id', task_id)\
+                    .eq('user_id', user_id)\
+                        .execute()\
+                            .json()
+        print(user_id, task_id)
+        current_task = json.loads(current_task)['data'][0]
+        flatten_task_details(current_task)
+        
+        return current_task
+    def can_add_note(self, token, task_id, parent_id=None):
+        user = self.user_model.get_user(token)
+        user_id = user.get('user').get('id')
+        task_in_routine = self.recursive_task_complete_helper(user_id, parent_id)
+    def recursive_task_complete_helper(self, user_id, parent_id = None):
+        if parent_id is None:
+            return False
+        parent_task = self.supabase.table('tasks')\
+                .select('id, name, parent_id, task_details(*)')\
+                    .eq('user_id', user_id)\
+                        .eq('parent_id', parent_id)\
+                            .execute()\
+                                .json()
+        parent_task = json.loads(parent_task)['data']
+        return self

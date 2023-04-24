@@ -25,9 +25,11 @@ class TaskManager:
     def update_profile(self, token: str, profile: str) -> dict:
         return self.user_model.update_profile(token, profile)
 
-    
     def get_tasks(self, token:str, task_id=None) -> List[dict]:
         return self.task_model.get_tasks(token, task_id)
+    
+    def get_task(self, token:str, task_id) -> dict:
+        return self.task_model.get_task(token, task_id)
     
     def search_task_by_type(self, token: str, type: str, keyword: str) -> List[dict]:
         return self.task_model.search_task_by_type(token, type, keyword)
@@ -42,7 +44,6 @@ class TaskManager:
 
     def delete_task(self, token: str, task_id: int) -> dict:
         return self.task_model.delete_task(token, task_id)
-
 
     def duplicate_task(self,token, task_id, parent_id=None):
         return self.task_model.duplicate_task(token, task_id, parent_id)

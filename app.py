@@ -78,11 +78,12 @@ def login():
         else:
             return Response('''{"message": "Bad Request"}''', status=400, mimetype='application/json')
 
-@app.route('/task', methods=['POST', 'PATCH', 'DELETE'])
+@app.route('/task', methods=['GET', 'POST', 'PATCH', 'DELETE'])
 def addOrUpdateTask():
     data = request.get_json()
     token = get_token(request)
     task_id = data.get('task_id')
+    task_get_id = request.args.get('task_id')
     try:
         if(request.method == 'POST'):
             return jsonify({
@@ -95,6 +96,10 @@ def addOrUpdateTask():
         elif(request.method == 'DELETE'):
             return jsonify({
                 'task': task_manager.delete_task(token, task_id),
+            }, 201)
+        elif(request.method == 'GET'):
+            return jsonify({
+                'task': task_manager.get_task(token, task_get_id),
             }, 201)
     except Exception as e:
         print(e)
@@ -116,9 +121,10 @@ def cloneTask():
     data = request.get_json()
     token = get_token(request)
     task_id = data.get('task_id')
+    parent_id = data.get('parent_id')
     try:
         return jsonify({
-            'task': task_manager.duplicate_task(token, task_id),
+            'task': task_manager.duplicate_task(token, task_id, parent_id),
         }, 201)
     except Exception as e:
         print(e)
