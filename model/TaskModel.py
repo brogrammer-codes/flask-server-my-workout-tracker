@@ -37,10 +37,19 @@ class TaskModel:
             .table('tasks')\
             .select('id, parent_id, name, task_details(*)')\
             .eq('user_id', user_id)\
-            .eq('task_details.type', type)\
+            .eq('name', type)\
+            .execute().json()
+        folder = json.loads(response)['data'][0]
+        response = self.supabase\
+            .table('tasks')\
+            .select('id, parent_id, name, task_details(*)')\
+            .eq('user_id', user_id)\
+            .eq('parent_id', folder.get('id'))\
             .execute().json()
         task_tree_json_data = json.loads(response)['data']
+
         task_tree_json_data = [data for data in task_tree_json_data if data['task_details'] is not None]
+        # task_tree_json_data = [data for data in task_tree_json_data if data['parent_id'] is None]
         if keyword is not None:
             task_tree_json_data = [data for data in task_tree_json_data if keyword.lower() in  data['name'].lower()]
         reduce_joint_array(task_tree_json_data)
