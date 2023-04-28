@@ -83,7 +83,7 @@ class TaskModel:
             .execute().json()
         json_data = json.loads(data)['data'][0]
         data = self.supabase.table("task_details")\
-            .update({"complete": task.get('complete'), "type": task.get('type'), "description": task.get('description'), "user_id": user_id, "tag_1": task.get('tag_1'), "tag_2": task.get('tag_2'), "tag_3": task.get('tag_3'), "tag_4": task.get('tag_4'), "tag_5": task.get('tag_5'), "tag_6": task.get('tag_6')}).eq('user_id', user_id).eq('id', task_id)\
+            .update({"complete": task.get('complete'), "type": task.get('type'), "description": task.get('description'), "user_id": user_id, "tag_1": task.get('tag_1'), "tag_2": task.get('tag_2'), "tag_3": task.get('tag_3'), "tag_4": task.get('tag_4'), "tag_5": task.get('tag_5'), "tag_6": task.get('tag_6'), "video_url":  task.get('video_url')}).eq('user_id', user_id).eq('id', task_id)\
             .execute().json()
         task_details = json.loads(data)['data'][0]
         task_details['parent_id'] = json_data.get('parent_id')
