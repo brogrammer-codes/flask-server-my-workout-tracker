@@ -22,7 +22,16 @@ class UserModel:
     def get_profile(self, profile_id: int) -> dict:
         response = self.supabase.table('profiles').select('username, full_name, website').eq('id', profile_id).execute()
         response_data = response.json()
-        json_data = json.loads(response_data)['data']
+        json_data = json.loads(response_data)['data'][0]
+        complete_task = self.supabase.table('tasks')\
+            .select('id, name, parent_id, task_details(*)')\
+                .eq('user_id', profile_id)\
+                    .eq('task_details.complete', True)\
+                        .execute()\
+                            .json()
+        complete_task_data = json.loads(complete_task)['data']
+        complete_task_data = [data for data in complete_task_data if data['task_details'] is not None]
+        json_data['complete_tasks'] = complete_task_data
         return json_data
 
     def create_user(self, email: str, password: str, app_url: str) -> dict:
