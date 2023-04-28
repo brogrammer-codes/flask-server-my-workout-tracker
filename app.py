@@ -44,39 +44,20 @@ def patch_user_profile():
     except Exception as e:
         print(e)
         return Response('''{"message": "Bad Request"}''', status=400, mimetype='application/json')
-
-@app.route('/sign-up',  methods=['POST'])
-def signUp():
-    data = request.get_json()
-    try:
-        email = data.get('email')
-        password = data.get('password')
-        app_url = data.get('app_url')
-        if(email):
-            return jsonify({
-                'session': task_manager.create_user(email, password, app_url),
-            }, 201)
-        return Response('''{"message": "No username or password"}''', status=400, mimetype='application/json')
-    except Exception as e:
-        print(e)
-        return Response('''{"message": "Bad Request"}''', status=400, mimetype='application/json')
-
+    
 @app.route('/login',  methods=['POST'])
 def login():
     data = request.get_json()
     try:
         email = data.get('email')
-        password = data.get('password')
-        if(email and password):
+        if(email):
             return jsonify({
-                'session': task_manager.login_user(email, password),
+                'session': task_manager.login_user(email),
             }, 201)
         return Response('''{"message": "No username or password"}''', status=400, mimetype='application/json')
     except Exception as e:
-        if str(e) == 'Invalid login credentials':
-            return Response('''{"message": "Invalid username or password"}''', status=400, mimetype='application/json')
-        else:
-            return Response('''{"message": "Bad Request"}''', status=400, mimetype='application/json')
+        return Response('''{"message": "Email Sent"}''', status=201, mimetype='application/json')
+
 
 @app.route('/task', methods=['GET', 'POST', 'PATCH', 'DELETE'])
 def addOrUpdateTask():
