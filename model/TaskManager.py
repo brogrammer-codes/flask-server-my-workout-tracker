@@ -10,8 +10,8 @@ class TaskManager:
         self.user_model = UserModel(self.supabase)
         self.task_model = TaskModel(self.supabase)
 
-    def login_user(self, email: str, password: str) -> dict:
-        return self.user_model.login_user(email, password)
+    def login_user(self, email: str) -> dict:
+        return self.user_model.login_user(email)
     
     def get_user(self, token: str) -> dict:
         return self.user_model.get_user(token)
@@ -25,6 +25,9 @@ class TaskManager:
     def update_profile(self, token: str, profile: str) -> dict:
         return self.user_model.update_profile(token, profile)
 
+    def update_password(self, token: str, password: str) -> dict:
+        return self.user_model.set_password(token, password)
+    
     def get_tasks(self, token:str, task_id=None) -> List[dict]:
         return self.task_model.get_tasks(token, task_id)
     
