@@ -47,5 +47,8 @@ class TaskManager:
 
     def duplicate_task(self,token, task_id, parent_id=None):
         return self.task_model.duplicate_task(token, task_id, parent_id)
+    
+    def complete_task(self, token, task):
+        return self.task_model.duplicate_task(token, task)
 
 

@@ -122,6 +122,10 @@ class TaskModel:
         for sub_task in sub_tasks:
             self.duplicate_task(token, sub_task['id'], new_task['id'])
         return new_task
+    def complete_task(self, token, task):
+        # need to check if you can complete the task
+        # make sure task is an activity or plan inside a routine, grab tree-> check parent tasks till you hit a `type==routine` return true, else return false
+        return self.update_task(token, task)
     def get_task(self, token, task_id):
         user = self.user_model.get_user(token)
         user_id = user.get('user').get('id')
@@ -131,7 +135,6 @@ class TaskModel:
                     .eq('user_id', user_id)\
                         .execute()\
                             .json()
-        print(user_id, task_id)
         current_task = json.loads(current_task)['data'][0]
         flatten_task_details(current_task)
         

@@ -104,6 +104,7 @@ def addOrUpdateTask():
     except Exception as e:
         print(e)
         return Response('''{"message": "Bad Request"}''', status=400, mimetype='application/json')
+
 @app.route('/task/type')
 def getActivity():
     token = get_token(request)
@@ -116,6 +117,7 @@ def getActivity():
     except Exception as e:
         print(e)
         return Response('''{"message": "Bad Request"}''', status=400, mimetype='application/json')
+
 @app.route('/task/clone', methods=['POST'])
 def cloneTask():
     data = request.get_json()
@@ -125,6 +127,19 @@ def cloneTask():
     try:
         return jsonify({
             'task': task_manager.duplicate_task(token, task_id, parent_id),
+        }, 201)
+    except Exception as e:
+        print(e)
+        return Response('''{"message": "Bad Request"}''', status=400, mimetype='application/json')
+    
+@app.route('/task/complete', methods=['POST'])
+def completeTask():
+    data = request.get_json()
+    token = get_token(request)
+    print(data)
+    try:
+        return jsonify({
+            'task': task_manager.complete_task(token, data),
         }, 201)
     except Exception as e:
         print(e)
