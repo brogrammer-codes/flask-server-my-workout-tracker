@@ -6,7 +6,7 @@ from model.TaskModel import TaskModel
 
 class TaskManager:
     def __init__(self, supabase_url: str, supabase_key: str):
-        self.supabase = create_client(supabase_url, supabase_key, options={'auto_refresh_token': True, 'persist_session': True})
+        self.supabase = create_client(supabase_url, supabase_key)
         self.user_model = UserModel(self.supabase)
         self.task_model = TaskModel(self.supabase)
 
