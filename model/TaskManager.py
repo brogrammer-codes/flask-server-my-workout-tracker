@@ -25,6 +25,9 @@ class TaskManager:
     def update_profile(self, token: str, profile: str) -> dict:
         return self.user_model.update_profile(token, profile)
 
+    def get_profiles(self) -> dict:
+        return self.user_model.get_profiles()
+
     def update_password(self, token: str, password: str) -> dict:
         return self.user_model.set_password(token, password)
     

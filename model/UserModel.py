@@ -16,7 +16,7 @@ class UserModel:
         return {'profile': profile, 'user': json_data}
     
     def get_profile(self, profile_id: int) -> dict:
-        response = self.supabase.table('profiles').select('username, full_name, website').eq('id', profile_id).execute()
+        response = self.supabase.table('profiles').select('*').eq('id', profile_id).execute()
         response_data = response.json()
         json_data = json.loads(response_data)['data'][0]
         complete_task = self.supabase.table('tasks')\
@@ -28,6 +28,13 @@ class UserModel:
         complete_task_data = json.loads(complete_task)['data']
         complete_task_data = [data for data in complete_task_data if data['task_details'] is not None]
         json_data['complete_tasks'] = complete_task_data
+        return json_data
+
+    def get_profiles(self) -> dict:
+        response = self.supabase.table('profiles').select('*').execute()
+        response_data = response.json()
+        json_data = json.loads(response_data)['data']
+        json_data = [data for data in json_data if data['username'] is not None]
         return json_data
 
     def update_profile(self, token: str, profile: dict) -> dict:

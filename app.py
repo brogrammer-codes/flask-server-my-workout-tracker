@@ -44,7 +44,17 @@ def patch_user_profile():
     except Exception as e:
         print(e)
         return Response('''{"message": "Bad Request"}''', status=400, mimetype='application/json')
-    
+
+@app.route('/profiles')
+def fetch_all_profiles():
+    try:
+        return jsonify({
+            'profiles': task_manager.get_profiles(),
+        })
+    except Exception as e:
+        print(e)
+        return Response('''{"message": "Bad Request"}''', status=400, mimetype='application/json')
+
 @app.route('/login',  methods=['POST'])
 def login():
     data = request.get_json()
