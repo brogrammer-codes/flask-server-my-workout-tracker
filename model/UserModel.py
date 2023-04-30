@@ -31,7 +31,7 @@ class UserModel:
         return json_data
 
     def get_profiles(self) -> dict:
-        response = self.supabase.table('profiles').select('*').execute()
+        response = self.supabase.table('profiles').select('username, website, favorite_activity').execute()
         response_data = response.json()
         json_data = json.loads(response_data)['data']
         json_data = [data for data in json_data if data['username'] is not None]
