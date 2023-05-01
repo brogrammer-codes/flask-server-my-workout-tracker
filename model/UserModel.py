@@ -1,4 +1,5 @@
 import json
+from utils import  merge_shared_tasks_to_profile, reduce_joint_array
 
 class UserModel:
     def __init__(self, supabase_client):
@@ -16,9 +17,11 @@ class UserModel:
         return {'profile': profile, 'user': json_data}
     
     def get_profile(self, profile_id: int) -> dict:
-        response = self.supabase.table('profiles').select('*').eq('id', profile_id).execute()
+        
+        response = self.supabase.table('profiles').select('*, shared_tasks(*), shared_task_details(*)').eq('id', profile_id).execute()
         response_data = response.json()
         json_data = json.loads(response_data)['data'][0]
+        merge_shared_tasks_to_profile(json_data)
         complete_task = self.supabase.table('tasks')\
             .select('id, name, parent_id, task_details(*)')\
                 .eq('user_id', profile_id)\
@@ -31,10 +34,19 @@ class UserModel:
         return json_data
 
     def get_profiles(self) -> dict:
-        response = self.supabase.table('profiles').select('username, website, favorite_activity').execute()
-        response_data = response.json()
+        profiles_response = self.supabase.table('profiles').select('id, username, website, favorite_activity, shared_tasks(*), shared_task_details(*)').execute()
+        response_data = profiles_response.json()
         json_data = json.loads(response_data)['data']
         json_data = [data for data in json_data if data['username'] is not None]
+        for data in json_data:
+            shared_tasks = []
+            for task in data['shared_tasks']:
+                task_details = [task_detail for task_detail in data['shared_task_details'] if task_detail['id'] == task['id']]
+                task['task_details'] = task_details[0] if task_details else {}
+                shared_tasks.append(task)
+            data['shared_tasks'] = shared_tasks
+            data.pop('shared_task_details')
+            reduce_joint_array(data['shared_tasks'])
         return json_data
 
     def update_profile(self, token: str, profile: dict) -> dict:

@@ -43,6 +43,8 @@ class TaskManager:
     def create_task(self, token: str, task: dict) -> dict:
         return self.task_model.create_task(token, task)
 
+    def create_shared_task(self, token: str, task_id: str) -> dict:
+        return self.task_model.clone_task_to_shared(token, task_id)
     
     def update_task(self,token: str, task: dict) -> dict:
         return self.task_model.update_task(token, task)

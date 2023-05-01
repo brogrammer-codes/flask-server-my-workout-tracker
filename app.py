@@ -122,6 +122,19 @@ def cloneTask():
     except Exception as e:
         print(e)
         return Response('''{"message": "Bad Request"}''', status=400, mimetype='application/json')
+
+@app.route('/shared-task/create', methods=['POST'])
+def createSharedTask():
+    data = request.get_json()
+    token = get_token(request)
+    task_id = data.get('task_id')
+    try:
+        return jsonify({
+            'task': task_manager.create_shared_task(token, task_id),
+        }, 201)
+    except Exception as e:
+        print(e)
+        return Response('''{"message": "Bad Request"}''', status=400, mimetype='application/json')
     
 @app.route('/task/complete', methods=['POST'])
 def completeTask():

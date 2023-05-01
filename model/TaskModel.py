@@ -104,9 +104,10 @@ class TaskModel:
         # Delete the task itself
         self.supabase.table('tasks').delete().eq('id', task_id).execute()
 
-    def duplicate_task(self,token, task_id, parent_id=None):
-        user = self.user_model.get_user(token)
-        user_id = user.get('user').get('id')
+    def duplicate_task(self,token, task_id, parent_id=None, user_id=None):
+        if(user_id is None):
+            user = self.user_model.get_user(token)
+            user_id = user.get('user').get('id')
         # Get the task to duplicate
         task_to_duplicate = self.supabase.table('tasks').select('id, name, parent_id, task_details(*)').eq('user_id', user_id).eq('id', task_id).execute().json()
         task_to_duplicate = json.loads(task_to_duplicate)['data'][0]
@@ -120,12 +121,13 @@ class TaskModel:
         sub_tasks = self.supabase.table('tasks').select('id').eq('parent_id', task_id).execute().json()
         sub_tasks = json.loads(sub_tasks)['data']
         for sub_task in sub_tasks:
-            self.duplicate_task(token, sub_task['id'], new_task['id'])
+            self.duplicate_task(token, sub_task['id'], new_task['id'], user_id)
         return new_task
     def complete_task(self, token, task):
         # need to check if you can complete the task
         # make sure task is an activity or plan inside a routine, grab tree-> check parent tasks till you hit a `type==routine` return true, else return false
         return self.update_task(token, task)
+    
     def get_task(self, token, task_id):
         user = self.user_model.get_user(token)
         user_id = user.get('user').get('id')
@@ -136,9 +138,48 @@ class TaskModel:
                         .execute()\
                             .json()
         current_task = json.loads(current_task)['data'][0]
-        flatten_task_details(current_task)
-        
+        flatten_task_details(current_task)    
         return current_task
+    
+    def clone_task_to_shared(self,token, task_id, parent_id=None, user_id=None):
+        if(user_id is None):
+            user = self.user_model.get_user(token)
+            user_id = user.get('user').get('id')
+        # Get the task to duplicate
+        task_to_duplicate = self.supabase.table('tasks').select('id, name, parent_id, task_details(*)').eq('user_id', user_id).eq('id', task_id).execute().json()
+        task_to_duplicate = json.loads(task_to_duplicate)['data'][0]
+        flatten_task_details(task_to_duplicate)
+        if(parent_id):
+            task_to_duplicate['parent_id'] = parent_id
+        else:
+            task_to_duplicate['parent_id'] = None
+        task_to_duplicate.pop('id')
+        new_task = self.create_shared_task(token, task_to_duplicate)
+        sub_tasks = self.supabase.table('tasks').select('id').eq('parent_id', task_id).execute().json()
+        sub_tasks = json.loads(sub_tasks)['data']
+        for sub_task in sub_tasks:
+            self.clone_task_to_shared(token, sub_task['id'], new_task['id'], user_id)
+        return new_task
+    
+    def create_shared_task(self, token: str, task: dict) -> dict:
+        user = self.user_model.get_user(token)
+        user_id = user.get('user').get('id')
+        data = self.supabase\
+            .table('shared_tasks')\
+            .insert({"parent_id": task.get('parent_id'), "user_id": user_id, "name": task.get('name'), "profile_id": user_id,})\
+            .execute()\
+            .json()
+        json_data = json.loads(data)['data'][0]
+        data = self.supabase\
+            .table('shared_task_details')\
+            .insert({"id": json_data.get('id'), "complete": task.get('complete'), "type": task.get('type'), "description": task.get('description'), "profile_id": user_id, "user_id": user_id, "tag_1": task.get('tag_1'), "tag_2": task.get('tag_2'), "tag_3": task.get('tag_3'), "tag_4": task.get('tag_4'), "tag_5": task.get('tag_5'), "tag_6": task.get('tag_6'), "video_url":  task.get('video_url')})\
+            .execute()\
+            .json()
+        task_details = json.loads(data)['data'][0]
+        task_details['parent_id'] = json_data.get('parent_id')
+        task_details['name'] = json_data.get('name')
+        return task_details
+    
     def can_add_note(self, token, task_id, parent_id=None):
         user = self.user_model.get_user(token)
         user_id = user.get('user').get('id')
