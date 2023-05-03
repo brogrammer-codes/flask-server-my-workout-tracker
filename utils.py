@@ -5,7 +5,7 @@ def get_token(request):
         if(bearer):
             token = bearer.split()[1]
             return token
-    return ''
+    return None
 
 
 def get_subtree_helper(task_tree, task_id, subtree):

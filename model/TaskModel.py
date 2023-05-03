@@ -117,6 +117,7 @@ class TaskModel:
         else:
             task_to_duplicate['name'] = task_to_duplicate['name'] + ' (copy)'
         task_to_duplicate.pop('id')
+        task_to_duplicate['complete'] = False
         new_task = self.create_task(token, task_to_duplicate)
         sub_tasks = self.supabase.table('tasks').select('id').eq('parent_id', task_id).execute().json()
         sub_tasks = json.loads(sub_tasks)['data']

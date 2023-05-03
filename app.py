@@ -101,6 +101,8 @@ def getActivity():
     token = get_token(request)
     keyword = request.args.get('keyword')
     type = request.args.get('type')
+    if(token is None):
+        return Response('''{"message": "No Token"}''', status=403, mimetype='application/json')
     try:
         return jsonify({
             'task': task_manager.search_task_by_type(token, type, keyword),
