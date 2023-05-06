@@ -22,11 +22,11 @@ class TaskModel:
         # think of a better way to do this
         if(task_id is not None):
             subtree = []
-            for task in task_tree_json_data:
-                if task['id'] == task_id:
-                    subtree.append(task)
-                    get_subtree_helper(task_tree_json_data, task_id, subtree)
-                    break
+            task = next((t for t in task_tree_json_data if t.get('id') == task_id), None)
+            parent = next((t for t in task_tree_json_data if t.get('id') == task.get('parent_id')), None)
+            subtree.append(task)
+            subtree.append(parent)
+            get_subtree_helper(task_tree_json_data, task_id, subtree)
             return subtree
         return task_tree_json_data
 
