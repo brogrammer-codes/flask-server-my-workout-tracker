@@ -129,9 +129,9 @@ class TaskModel:
         # make sure task is an activity or plan inside a routine, grab tree-> check parent tasks till you hit a `type==routine` return true, else return false
         task_tree = self.get_tasks(token)
         task = next((t for t in task_tree if t.get('id') == task_id), None)
-        if(task.get('cam_complete') == True):
+        if(task.get('can_complete') == True):
             task['complete'] = True
-            return self.update_task(token, task_id)
+            return self.update_task(token, task)
     
     def get_task(self, token, task_id):
         user = self.user_model.get_user(token)
