@@ -142,10 +142,10 @@ def createSharedTask():
 def completeTask():
     data = request.get_json()
     token = get_token(request)
-    print(data)
+    task_id = data.get('task_id')
     try:
         return jsonify({
-            'task': task_manager.complete_task(token, data),
+            'task': task_manager.complete_task(token, task_id),
         }, 201)
     except Exception as e:
         print(e)

@@ -1,4 +1,4 @@
-from utils import get_subtree_helper, reduce_joint_array, flatten_task_details
+from utils import get_subtree_helper, create_task_payload, flatten_task_details
 from typing import List
 from model.UserModel import UserModel
 
@@ -18,7 +18,7 @@ class TaskModel:
             .eq('user_id', user_id)\
             .execute().json()
         task_tree_json_data = json.loads(response)['data']
-        reduce_joint_array(task_tree_json_data)
+        create_task_payload(task_tree_json_data)
         # think of a better way to do this
         if(task_id is not None):
             subtree = []
@@ -52,7 +52,7 @@ class TaskModel:
         # task_tree_json_data = [data for data in task_tree_json_data if data['parent_id'] is None]
         if keyword is not None:
             task_tree_json_data = [data for data in task_tree_json_data if keyword.lower() in  data['name'].lower()]
-        reduce_joint_array(task_tree_json_data)
+        create_task_payload(task_tree_json_data)
         return task_tree_json_data
     
     def create_task(self, token: str, task: dict) -> dict:
@@ -124,10 +124,14 @@ class TaskModel:
         for sub_task in sub_tasks:
             self.duplicate_task(token, sub_task['id'], new_task['id'], user_id)
         return new_task
-    def complete_task(self, token, task):
+    def complete_task(self, token, task_id):
         # need to check if you can complete the task
         # make sure task is an activity or plan inside a routine, grab tree-> check parent tasks till you hit a `type==routine` return true, else return false
-        return self.update_task(token, task)
+        task_tree = self.get_tasks(token)
+        task = next((t for t in task_tree if t.get('id') == task_id), None)
+        if(task.get('cam_complete') == True):
+            task['complete'] = True
+            return self.update_task(token, task_id)
     
     def get_task(self, token, task_id):
         user = self.user_model.get_user(token)

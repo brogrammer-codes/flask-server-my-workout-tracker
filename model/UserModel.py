@@ -1,5 +1,5 @@
 import json
-from utils import  merge_shared_tasks_to_profile, reduce_joint_array
+from utils import  merge_shared_tasks_to_profile, create_task_payload
 
 class UserModel:
     def __init__(self, supabase_client):
@@ -46,7 +46,7 @@ class UserModel:
                 shared_tasks.append(task)
             data['shared_tasks'] = shared_tasks
             data.pop('shared_task_details')
-            reduce_joint_array(data['shared_tasks'])
+            create_task_payload(data['shared_tasks'])
         return json_data
 
     def update_profile(self, token: str, profile: dict) -> dict:
