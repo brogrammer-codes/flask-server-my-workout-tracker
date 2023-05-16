@@ -11,7 +11,7 @@ I'm building a web application to help me keep track of my workouts. It could be
         pip install -r requirements.txt
         pip install python-dotenv
     ```
-- Update the `.flaskenv.example` file to read `.env.local` and add the correct URL for `SUPABASE_URL` and `SUPABASE_KEY`
+- Update the `.flaskenv.example` file to read `.flaskenv` and add the correct URL for `SUPABASE_URL` and `SUPABASE_KEY`
 - To deploy I used [heroku](https://dashboard.heroku.com/), I'm workin on correct pipelines to auto deploy, for now I use the following commands
     ```
     heroku git:remote -a <project-name>
